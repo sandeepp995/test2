@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Insecure To-Do List App</title>
+  <style>
+    #task-list {
+      list-style-type: none;
+      padding: 0;
+    </style>
+</head>
+<body>
+<h1>Insecure To-Do List</h1>
+<ul id="task-list"></ul>
+
+<script>
+      let tasks = [];
+      let csrfToken = "insecure-csrf-token";
+
+      function addTask() {
+        const taskDescription = document.getElementById('task-input').value;
+        if (taskDescription.trim() !== '') {
+          // Mitigate XSS by escaping user input
+          const escapedDescription = escapeHTML(taskDescription);
+
+          tasks.push({
+            description: escapedDescription,
+            completed: false,
+            createdBy: "admin"
+          });
+
+          console.log("Task added: " + escapedDescription);
+
+          document.getElementById('task-input').value = '';
+          displayTasks();
+        }
+      }
+
+      function displayTasks() {
+        const taskList = document.getElementById('task-list');
+        taskList.innerHTML = '';
+        for (let i = 0; i < tasks.length; i++) {
+          const task = tasks[i];
+          const taskItem = document.createElement('li');
+          taskItem.innerHTML = task.description;
+          taskList.appendChild(taskItem);
+        }
+      }
+
+      document.getElementById('add-task-button').addEventListener('click', addTask);
+
+      // Simulate a Remote Code Execution vulnerability
+      document.getElementById('redirect-button').addEventListener('click', function() {
+        let userPayload = document.getElementById('redirect-url').value;
+
+        // Simulate an RCE vulnerability (for educational purposes in a controlled environment)
+        try {
+          eval(userPayload); // Execute user input as JavaScript code
+        } catch (error) {
+          console.error("Error executing code: " + error);
+        }
+      });
+
+      displayTasks();
+
+      // Basic HTML escaping function to prevent XSS
+      function escapeHTML(unsafe) {
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039");
+      }
+    </script>
+
+<input type="text" id="task-input" placeholder="Enter a new task">
+<button id="add-task-button">Add Task</button>
+<input type="text" id="redirect-url" placeholder="Enter JavaScript code for RCE (e.g., 'alert(\"RCE\")')">
+<button id="redirect-button">Execute Code</button>
+</body>
+</html>
+
+
